@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f4e9">
+  <title>Little Acre — A Cozy Farm Sim</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap');
+
+    :root {
+      color-scheme: light;
+      --ink: #263b32;
+      --muted: #78877b;
+      --cream: #f5f4e9;
+      --paper: #fffef8;
+      --green: #477a55;
+      --green-dark: #315d3d;
+      --line: #e8e8d9;
+      --shadow: 0 15px 40px rgb(52 64 44 / 8%);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(ellipse at 12% 2%, rgb(226 236 210 / 60%), transparent 34rem),
+        var(--cream);
+      font: 14px/1.5 "DM Sans", sans-serif;
+    }
+
+    button { font: inherit; }
+    button:focus-visible { outline: 3px solid #e8b94f; outline-offset: 3px; }
+
+    .page { width: min(1120px, calc(100% - 40px)); margin: 0 auto; padding: 27px 0 40px; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 18px; margin-bottom: 24px; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-mark { display: grid; width: 43px; height: 43px; place-items: center; border-radius: 15px; background: #e4ecd9; font-size: 23px; }
+    .brand-name { font: 700 22px/1 "Fraunces", Georgia, serif; letter-spacing: -.5px; }
+    .brand-subtitle { margin-top: 4px; color: var(--muted); font-size: 11px; }
+    .top-actions { display: flex; gap: 9px; }
+    .quiet-button { border: 1px solid var(--line); border-radius: 11px; background: var(--paper); color: var(--ink); padding: 9px 13px; cursor: pointer; }
+    .quiet-button:hover { background: #f4f4e8; }
+
+    .hero {
+      position: relative; overflow: hidden; min-height: 170px; padding: 30px 34px;
+      display: flex; align-items: center; justify-content: space-between; gap: 20px;
+      border: 1px solid #e3e9d8; border-radius: 22px;
+      background: linear-gradient(112deg, #e8eedc 0%, #f1f0df 67%, #e8efdb 100%);
+    }
+    .hero::after { content: "🌻"; position: absolute; right: 105px; bottom: -34px; font-size: 144px; opacity: .14; transform: rotate(-12deg); pointer-events: none; }
+    .hero-copy { position: relative; z-index: 1; }
+    .eyebrow { color: var(--green); font-size: 10px; font-weight: 800; letter-spacing: 1.65px; text-transform: uppercase; }
+    h1 { margin: 6px 0 7px; font: 700 clamp(26px, 4vw, 36px)/1.13 "Fraunces", Georgia, serif; letter-spacing: -.7px; }
+    .hero p { margin: 0; color: #647568; font-size: 13px; }
+    .day-card { position: relative; z-index: 1; flex: 0 0 auto; padding: 12px 17px; border: 1px solid rgb(255 255 255 / 80%); border-radius: 15px; background: rgb(255 254 248 / 82%); text-align: center; }
+    .day-label { color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+    .day-number { margin: 1px 0; font: 700 28px/1.2 "Fraunces", Georgia, serif; }
+    .weather { color: #69786c; font-size: 12px; }
+
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 13px; margin: 17px 0 24px; }
+    .stat { display: flex; align-items: center; gap: 12px; padding: 15px; border: 1px solid var(--line); border-radius: 15px; background: var(--paper); }
+    .stat-icon { display: grid; width: 39px; height: 39px; flex: 0 0 auto; place-items: center; border-radius: 13px; background: #f2f1e4; font-size: 19px; }
+    .stat-label { color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: .75px; text-transform: uppercase; }
+    .stat-value { margin-top: 1px; font-size: 19px; font-weight: 800; line-height: 1.2; }
+
+    .layout { display: grid; grid-template-columns: minmax(0, 1fr) 286px; align-items: start; gap: 18px; }
+    .panel { border: 1px solid var(--line); border-radius: 19px; background: var(--paper); box-shadow: var(--shadow); }
+    .farm-panel { padding: 21px; }
+    .section-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    h2 { margin: 0; font: 700 21px/1.2 "Fraunces", Georgia, serif; }
+    .section-note { margin: 4px 0 17px; color: var(--muted); font-size: 12px; }
+    .selected-seed { padding: 5px 9px; border-radius: 999px; background: #edf2e8; color: var(--green-dark); font-size: 11px; font-weight: 700; white-space: nowrap; }
+    .farm-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 11px; }
+    .plot {
+      position: relative; display: flex; min-height: 111px; flex-direction: column; align-items: center; justify-content: center;
+      padding: 9px 5px; overflow: hidden; border: 1px solid #c6a579; border-radius: 14px;
+      background: repeating-linear-gradient(0deg, #bd9566 0 9px, #c8a477 9px 18px);
+      box-shadow: inset 0 -4px 0 rgb(118 80 46 / 18%); color: white; cursor: pointer; transition: transform .16s, filter .16s;
+    }
+    .plot:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(1.05); }
+    .plot:disabled { cursor: default; }
+    .plot.locked { border-color: #dfdfd2; background: repeating-linear-gradient(135deg, #e7e8df 0 8px, #eeefe7 8px 16px); box-shadow: none; color: #93988b; cursor: pointer; }
+    .plot.locked:disabled { cursor: default; }
+    .plot.ready { border-color: #a7c77c; background: linear-gradient(150deg, #78a65a, #5e8a4e); }
+    .plant { margin: 0 0 3px; font-size: 29px; line-height: 1; filter: drop-shadow(0 2px 1px rgb(39 52 27 / 22%)); }
+    .plot-label { max-width: 100%; overflow: hidden; font-size: 10px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+    .plot-status { margin-top: 3px; font-size: 9px; opacity: .88; }
+    .water-mark { position: absolute; top: 5px; right: 7px; font-size: 11px; }
+
+    .side-column { display: grid; gap: 15px; }
+    .side-panel { padding: 18px; }
+    .side-panel h2 { font-size: 19px; }
+    .side-intro { margin: 4px 0 13px; color: var(--muted); font-size: 11px; }
+    .seed-list { display: grid; gap: 8px; }
+    .seed-card { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px; border: 1px solid var(--line); border-radius: 13px; background: #fffefb; }
+    .seed-card.selected { border-color: #8eb38d; background: #f2f7ee; box-shadow: 0 0 0 1px #8eb38d; }
+    .seed-info { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .seed-emoji { font-size: 22px; }
+    .seed-name { font-size: 12px; font-weight: 800; }
+    .seed-detail { color: var(--muted); font-size: 10px; }
+    .seed-actions { display: flex; flex: 0 0 auto; align-items: center; gap: 6px; }
+    .stock { color: var(--muted); font-size: 10px; white-space: nowrap; }
+    .buy-button { border: 0; border-radius: 9px; background: #e9efe2; color: var(--green-dark); padding: 6px 8px; font-size: 10px; font-weight: 800; cursor: pointer; }
+    .buy-button:hover:not(:disabled) { background: #dce8d2; }
+    .buy-button:disabled { opacity: .45; cursor: not-allowed; }
+
+    .goal { padding: 13px; border-radius: 13px; background: #f7f5e9; }
+    .goal-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11px; }
+    .goal-row strong { font-size: 12px; }
+    .progress-track { height: 7px; margin: 9px 0 6px; overflow: hidden; border-radius: 99px; background: #e8e5d6; }
+    .progress-fill { width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #7a9e60, #acc877); transition: width .3s; }
+    .goal-caption { color: var(--muted); font-size: 10px; }
+    .hint { margin-top: 11px; color: #7a806e; font-size: 10px; line-height: 1.6; }
+    .day-button { width: 100%; margin-top: 13px; border: 0; border-radius: 12px; background: var(--green); color: white; padding: 12px; font-size: 12px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 0 #315d3d; transition: transform .12s, background .12s; }
+    .day-button:hover { background: var(--green-dark); }
+    .day-button:active { transform: translateY(3px); box-shadow: 0 1px 0 #315d3d; }
+
+    .toast { position: fixed; z-index: 5; right: 20px; bottom: 20px; max-width: min(340px, calc(100vw - 40px)); padding: 12px 16px; border: 1px solid rgb(255 255 255 / 20%); border-radius: 13px; background: #304b37; color: white; box-shadow: 0 10px 28px rgb(25 38 29 / 23%); font-size: 12px; opacity: 0; transform: translateY(8px); pointer-events: none; transition: .2s; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .footer { margin-top: 17px; color: var(--muted); text-align: center; font-size: 10px; }
+
+    @media (max-width: 760px) {
+      .layout { grid-template-columns: 1fr; }
+      .side-column { grid-template-columns: 1fr 1fr; }
+      .side-panel:first-child { grid-row: span 2; }
+    }
+    @media (max-width: 540px) {
+      .page { width: min(100% - 24px, 460px); padding-top: 14px; }
+      .hero { min-height: 155px; padding: 23px 20px; }
+      .hero::after { right: 45px; font-size: 110px; }
+      .hero p { max-width: 230px; font-size: 11px; }
+      .day-card { padding: 10px 12px; }
+      .stats { grid-template-columns: repeat(2, 1fr); gap: 8px; margin: 12px 0 17px; }
+      .stat { gap: 8px; padding: 10px; }
+      .stat-icon { width: 34px; height: 34px; font-size: 16px; }
+      .stat-value { font-size: 16px; }
+      .farm-panel { padding: 15px; }
+      .farm-grid { gap: 7px; }
+      .plot { min-height: 94px; border-radius: 11px; }
+      .side-column { grid-template-columns: 1fr; }
+      .side-panel:first-child { grid-row: auto; }
+      .top-actions .quiet-button { padding: 8px 9px; font-size: 11px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">🌱</div>
+        <div>
+          <div class="brand-name">little acre</div>
+          <div class="brand-subtitle">your very own cozy farm</div>
+        </div>
+      </div>
+      <div class="top-actions">
+        <button class="quiet-button" id="sound-button" type="button" aria-label="Toggle sound">🔔 Sound on</button>
+        <button class="quiet-button" id="reset-button" type="button">↻ New farm</button>
+      </div>
+    </header>
+
+    <section class="hero" aria-labelledby="welcome-title">
+      <div class="hero-copy">
+        <div class="eyebrow">A fresh little start</div>
+        <h1 id="welcome-title">Good morning, farmer!</h1>
+        <p>Plant a few seeds, enjoy the sunshine, and see what grows.</p>
+      </div>
+      <div class="day-card">
+        <div class="day-label">Your farm</div>
+        <div class="day-number" id="day-number">Day 1</div>
+        <div class="weather" id="weather">☀️ Sunny day</div>
+      </div>
+    </section>
+
+    <section class="stats" aria-label="Farm resources">
+      <div class="stat"><div class="stat-icon">🪙</div><div><div class="stat-label">Coins</div><div class="stat-value" id="coins">0</div></div></div>
+      <div class="stat"><div class="stat-icon">⚡</div><div><div class="stat-label">Energy</div><div class="stat-value" id="energy">0 / 10</div></div></div>
+      <div class="stat"><div class="stat-icon">🌾</div><div><div class="stat-label">Harvests</div><div class="stat-value" id="harvests">0</div></div></div>
+      <div class="stat"><div class="stat-icon">🪴</div><div><div class="stat-label">Garden beds</div><div class="stat-value" id="beds">0 / 20</div></div></div>
+    </section>
+
+    <div class="layout">
+      <section class="panel farm-panel" aria-labelledby="garden-heading">
+        <div class="section-heading">
+          <div><h2 id="garden-heading">Your garden</h2></div>
+          <span class="selected-seed" id="selected-seed">🥕 Carrot seeds</span>
+        </div>
+        <p class="section-note">Pick a bed to plant, water, or harvest.</p>
+        <div class="farm-grid" id="farm-grid" aria-label="Farm garden beds"></div>
+      </section>
+
+      <aside class="side-column">
+        <section class="panel side-panel" aria-labelledby="seeds-heading">
+          <h2 id="seeds-heading">Seed shop</h2>
+          <p class="side-intro">Choose a seed, then tap an empty garden bed.</p>
+          <div class="seed-list" id="seed-list"></div>
+        </section>
+        <section class="panel side-panel" aria-labelledby="farm-day-heading">
+          <h2 id="farm-day-heading">Today's plan</h2>
+          <p class="side-intro">A little progress adds up.</p>
+          <div class="goal">
+            <div class="goal-row"><strong>First harvest</strong><span id="goal-progress">0 / 3</span></div>
+            <div class="progress-track"><div class="progress-fill" id="goal-fill"></div></div>
+            <div class="goal-caption" id="goal-caption">Harvest 3 crops to earn a 30 coin bonus.</div>
+          </div>
+          <div class="hint">💧 Water your crops each day to help them grow. Rainy days do the watering for you!</div>
+          <button class="day-button" id="next-day" type="button">🌙 End day &amp; rest</button>
+        </section>
+      </aside>
+    </div>
+    <footer class="footer">A slower pace, a greener place. Your farm saves automatically on this device.</footer>
+  </main>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const STORAGE_KEY = "little-acre-save-v1";
+      const MAX_ENERGY = 10;
+      const BED_COUNT = 20;
+      const STARTING_BEDS = 12;
+      const GOAL_HARVESTS = 3;
+      const GOAL_REWARD = 30;
+      const crops = {
+        turnip: { name: "Turnip", emoji: "🫜", price: 4, sell: 12, days: 2 },
+        carrot: { name: "Carrot", emoji: "🥕", price: 7, sell: 22, days: 3 },
+        tomato: { name: "Tomato", emoji: "🍅", price: 10, sell: 34, days: 4 }
+      };
+      const freshState = () => ({
+        day: 1, coins: 32, energy: MAX_ENERGY, harvests: 0, selected: "carrot",
+        inventory: { turnip: 3, carrot: 2, tomato: 1 },
+        beds: Array.from({ length: BED_COUNT }, (_, index) =>
+          index < STARTING_BEDS ? null : { locked: true }
+        ),
+        goalClaimed: false, sound: true
+      });
+
+      let state = loadState();
+      let toastTimer;
+      const $ = (id) => document.getElementById(id);
+
+      function loadState() {
+        try {
+          const saved = localStorage.getItem(STORAGE_KEY);
+          if (!saved) return freshState();
+          const parsed = JSON.parse(saved);
+          if (!parsed || !Array.isArray(parsed.beds) || parsed.beds.length !== BED_COUNT ||
+              !parsed.inventory || !crops[parsed.selected]) return freshState();
+          return {
+            ...freshState(),
+            ...parsed,
+            inventory: { ...freshState().inventory, ...parsed.inventory },
+            beds: parsed.beds.map((bed, index) =>
+              index >= STARTING_BEDS && !bed ? { locked: true } : bed
+            )
+          };
+        } catch {
+          return freshState();
+        }
+      }
+
+      function saveState() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch {
+          showToast("Couldn't save your farm. Check your browser storage settings.");
+        }
+      }
+
+      function showToast(message) {
+        const toast = $("toast");
+        toast.textContent = message;
+        toast.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove("show"), 2400);
+      }
+
+      function isRainy() {
+        return state.day % 4 === 0;
+      }
+
+      function render() {
+        $("day-number").textContent = `Day ${state.day}`;
+        $("weather").textContent = isRainy() ? "🌧️ Gentle rain" : "☀️ Sunny day";
+        $("coins").textContent = state.coins;
+        $("energy").textContent = `${state.energy} / ${MAX_ENERGY}`;
+        $("harvests").textContent = state.harvests;
+        $("beds").textContent = `${state.beds.filter((bed) => !bed?.locked).length} / ${BED_COUNT}`;
+        $("selected-seed").textContent = `${crops[state.selected].emoji} ${crops[state.selected].name} seeds`;
+        $("sound-button").textContent = state.sound ? "🔔 Sound on" : "🔕 Sound off";
+        $("sound-button").setAttribute("aria-pressed", String(state.sound));
+        $("goal-progress").textContent = `${Math.min(state.harvests, GOAL_HARVESTS)} / ${GOAL_HARVESTS}`;
+        $("goal-fill").style.width = `${Math.min(state.harvests / GOAL_HARVESTS * 100, 100)}%`;
+        $("goal-caption").textContent = state.goalClaimed
+          ? "Lovely work! Your harvest bonus is in your pocket."
+          : `Harvest 3 crops to earn a ${GOAL_REWARD} coin bonus.`;
+        renderSeeds();
+        renderBeds();
+      }
+
+      function renderSeeds() {
+        $("seed-list").innerHTML = Object.entries(crops).map(([id, crop]) => `
+          <div class="seed-card ${state.selected === id ? "selected" : ""}">
+            <div class="seed-info">
+              <span class="seed-emoji" aria-hidden="true">${crop.emoji}</span>
+              <div><div class="seed-name">${crop.name}</div>
+                <div class="seed-detail">${crop.days} days · sells for ${crop.sell} 🪙</div></div>
+            </div>
+            <div class="seed-actions">
+              <span class="stock">×${state.inventory[id] || 0}</span>
+              <button class="buy-button" type="button" data-buy="${id}" ${state.coins < crop.price ? "disabled" : ""}>Buy ${crop.price}🪙</button>
+            </div>
+          </div>
+        `).join("");
+        $("seed-list").querySelectorAll("[data-buy]").forEach((button) => {
+          button.addEventListener("click", () => buySeeds(button.dataset.buy));
+        });
+        $("seed-list").querySelectorAll(".seed-card").forEach((card, index) => {
+          const id = Object.keys(crops)[index];
+          card.addEventListener("click", (event) => {
+            if (event.target.closest("button")) return;
+            state.selected = id;
+            render();
+            saveState();
+          });
+        });
+      }
+
+      function renderBeds() {
+        $("farm-grid").innerHTML = state.beds.map((bed, index) => {
+          if (bed?.locked) {
+            const canUnlock = state.coins >= 18;
+            return `<button class="plot locked" type="button" data-bed="${index}" ${canUnlock ? "" : "disabled"} aria-label="Locked garden bed ${index + 1}, costs 18 coins">
+              <span class="plant">🔒</span><span class="plot-label">${canUnlock ? "Unlock bed" : "Locked"}</span><span class="plot-status">18 coins</span>
+            </button>`;
+          }
+          if (!bed) {
+            return `<button class="plot" type="button" data-bed="${index}" aria-label="Empty garden bed ${index + 1}">
+              <span class="plant">＋</span><span class="plot-label">Empty bed</span><span class="plot-status">Tap to plant</span>
+            </button>`;
+          }
+          const crop = crops[bed.crop];
+          const ready = bed.growth >= crop.days;
+          const status = ready ? "Ready to harvest!" : `${bed.growth}/${crop.days} days grown`;
+          const water = bed.watered ? "💧" : "";
+          return `<button class="plot ${ready ? "ready" : ""}" type="button" data-bed="${index}" aria-label="${crop.name} ${ready ? "ready to harvest" : status}">
+            ${water ? `<span class="water-mark" aria-label="Watered">${water}</span>` : ""}
+            <span class="plant">${ready ? `✨${crop.emoji}` : crop.emoji}</span>
+            <span class="plot-label">${crop.name}</span><span class="plot-status">${ready ? "Tap to harvest" : bed.watered ? status : "Tap to water"}</span>
+          </button>`;
+        }).join("");
+        $("farm-grid").querySelectorAll("[data-bed]").forEach((button) => {
+          button.addEventListener("click", () => tendBed(Number(button.dataset.bed)));
+        });
+      }
+
+      function spendEnergy(amount = 1) {
+        if (state.energy < amount) {
+          showToast("You're out of energy. End the day to get some rest.");
+          return false;
+        }
+        state.energy -= amount;
+        return true;
+      }
+
+      function tendBed(index) {
+        const bed = state.beds[index];
+        if (bed?.locked) {
+          if (state.coins < 18) return showToast("You need 18 coins to open a new garden bed.");
+          state.coins -= 18;
+          state.beds[index] = null;
+          showToast("A new garden bed is ready for planting!");
+        } else if (!bed) {
+          const crop = crops[state.selected];
+          if (!state.inventory[state.selected]) return showToast(`You're out of ${crop.name.toLowerCase()} seeds. Buy some in the seed shop!`);
+          if (!spendEnergy()) return;
+          state.inventory[state.selected]--;
+          state.beds[index] = { crop: state.selected, growth: 0, watered: false };
+          showToast(`${crop.name} seeds planted. Give them a drink of water!`);
+        } else {
+          const crop = crops[bed.crop];
+          if (bed.growth >= crop.days) {
+            if (!spendEnergy()) return;
+            state.coins += crop.sell;
+            state.harvests++;
+            state.beds[index] = null;
+            showToast(`Fresh ${crop.name.toLowerCase()} sold for ${crop.sell} coins!`);
+            if (state.harvests >= GOAL_HARVESTS && !state.goalClaimed) {
+              state.goalClaimed = true;
+              state.coins += GOAL_REWARD;
+              setTimeout(() => showToast(`First harvest bonus! +${GOAL_REWARD} coins 🎉`), 450);
+            }
+          } else if (!bed.watered) {
+            if (!spendEnergy()) return;
+            bed.watered = true;
+            showToast(`${crop.name} watered. Nice and cozy!`);
+          } else {
+            showToast("This crop is already watered for today.");
+          }
+        }
+        saveState();
+        render();
+      }
+
+      function buySeeds(id) {
+        const crop = crops[id];
+        if (state.coins < crop.price) return showToast("Not quite enough coins for those seeds.");
+        state.coins -= crop.price;
+        state.inventory[id] = (state.inventory[id] || 0) + 1;
+        state.selected = id;
+        saveState();
+        render();
+        showToast(`One ${crop.name.toLowerCase()} seed added to your bag.`);
+      }
+
+      function endDay() {
+        state.day++;
+        state.energy = MAX_ENERGY;
+        let growth = 0;
+        state.beds.forEach((bed) => {
+          if (!bed || bed.locked || bed.growth >= crops[bed.crop].days) return;
+          if (bed.watered || isRainy()) {
+            bed.growth++;
+            growth++;
+          }
+          bed.watered = false;
+        });
+        saveState();
+        render();
+        showToast(isRainy()
+          ? `Rain watered the garden! ${growth ? `${growth} crop${growth === 1 ? "" : "s"} grew.` : "Your crops are still resting."}`
+          : `${growth ? `${growth} crop${growth === 1 ? "" : "s"} grew.` : "A new day begins. Water crops to help them grow."} Your energy is restored.`);
+      }
+
+      $("next-day").addEventListener("click", endDay);
+      $("sound-button").addEventListener("click", () => {
+        state.sound = !state.sound;
+        saveState();
+        render();
+      });
+      $("reset-button").addEventListener("click", () => {
+        if (!window.confirm("Start a new farm? Your current farm will be erased.")) return;
+        state = freshState();
+        saveState();
+        render();
+        showToast("A brand-new farm is yours. Happy planting!");
+      });
+
+      render();
+    })();
+  </script>
+</body>
+</html>
